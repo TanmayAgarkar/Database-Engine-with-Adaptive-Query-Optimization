@@ -1,0 +1,35 @@
+cmake_minimum_required(VERSION 3.14)
+project(AdaptiveMiniDB LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+add_library(adb_core src/database.cpp)
+target_include_directories(adb_core PUBLIC include)
+if(MSVC)
+  target_compile_options(adb_core PUBLIC /W4)
+else()
+  target_compile_options(adb_core PUBLIC -Wall -Wextra)
+endif()
+
+add_executable(adaptive_minidb src/main.cpp)
+target_link_libraries(adaptive_minidb PRIVATE adb_core)
+
+option(ADB_BUILD_TESTS "Build unit/integration tests" ON)
+if(ADB_BUILD_TESTS)
+  enable_testing()
+  add_executable(all_tests tests/all_tests.cpp)
+  target_link_libraries(all_tests PRIVATE adb_core)
+  add_test(NAME all_tests COMMAND all_tests)
+endif()
+
+option(ADB_BUILD_BENCHMARKS "Build benchmarks" ON)
+if(ADB_BUILD_BENCHMARKS)
+  add_executable(workload_benchmark benchmarks/workload_benchmark.cpp)
+  target_link_libraries(workload_benchmark PRIVATE adb_core)
+endif()
+
